@@ -4,13 +4,13 @@ import numpy as np
 #from sklearn.cluster import KMeans
 #KMeans
 
-image_dir = '/home/yuito/test/images/'
-image_file = 'image2.JPG'
+image_dir = 'images/'
+image_file = 'image3.JPG'
 im = cv2.imread(image_dir + image_file, 1)
 #im_th = (np.abs(im[:,:,2] - im[:,:,1]) + np.abs(im[:,:,2] - im[:,:,0]))
 #cv2.imwrite("output2/im_th.jpg", im_th)
 im_blur = cv2.GaussianBlur(im, (25,25), 0)
-cv2.imwrite("output2/im_blur.jpg", im_blur)
+cv2.imwrite("output/im_blur.jpg", im_blur)
 im_th = (np.abs(im_blur[:,:,2] - im_blur[:,:,1]) + np.abs(im_blur[:,:,2] - im_blur[:,:,0]))
 
 
@@ -39,9 +39,9 @@ th2 = cv2.adaptiveThreshold(im_th, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRE
 #付箋部分だけ取りたい時↓
 ret2, th = cv2.threshold(im_th, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 
-cv2.imwrite("output2/th2.jpg", th2)
-cv2.imwrite("output2/th.jpg", th)
-cv2.imwrite("output2/th1.jpg", th1)
+cv2.imwrite("output/th2.jpg", th2)
+cv2.imwrite("output/th.jpg", th)
+cv2.imwrite("output/th1.jpg", th1)
 
 img, contours, _ = cv2.findContours(th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 """#contoursの表示
@@ -61,7 +61,7 @@ print(len(contours_large))
 im_copy = np.copy(im)
 im_contours = cv2.drawContours(im_copy, contours_large, -1, (0,0,0),2)
 
-cv2.imwrite("output2/image-contour1.jpg", im_contours)
+cv2.imwrite("output/image-contour1.jpg", im_contours)
 print ("number of tags: %d" %len(contours_large))
 
 im_copy = np.copy(im)
@@ -69,7 +69,7 @@ for cnt in contours_large:
     x, y, w, h = cv2.boundingRect(cnt)
     bounding_img = cv2.rectangle(im_copy, (x, y), (x + w, y + h), (0, 255, 0), 3)
 
-cv2.imwrite("output2/image-bounding.jpg", bounding_img)
+cv2.imwrite("output/image-bounding.jpg", bounding_img)
 
 #ここまで
 
@@ -86,7 +86,7 @@ for i,cnt in enumerate(contours_large):
     rect = getRectByPoints(approx)
     rects.append(rect)
     outputs.append(getPartImageByRect(rect))
-    cv2.imwrite('output2/'+str(i)+'.jpg', getPartImageByRect(rect))
+    cv2.imwrite('output/'+str(i)+'.jpg', getPartImageByRect(rect))
 
 
 """
