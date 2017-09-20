@@ -7,7 +7,6 @@ import numpy as np
 image_dir = 'images/'
 image_file = 'image3.JPG'
 im = cv2.imread(image_dir + image_file, 1)
-#im_th = (np.abs(im[:,:,2] - im[:,:,1]) + np.abs(im[:,:,2] - im[:,:,0]))
 #cv2.imwrite("output2/im_th.jpg", im_th)
 im_blur = cv2.GaussianBlur(im, (25,25), 0)
 cv2.imwrite("output/im_blur.jpg", im_blur)
