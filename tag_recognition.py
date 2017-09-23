@@ -7,6 +7,21 @@ import numpy as np
 image_dir = 'images/'
 image_file = 'image3.JPG'
 im = cv2.imread(image_dir + image_file, 1)
+
+height, width = im.shape[:2]
+todo_width = width //3
+doing_width = 2 * width //3
+cv2.line(im, (todo_width, 0), (todo_width, height), (0,0,0), 4)
+
+cv2.line(im, (doing_width, 0), (doing_width, height), (0,0,0),4)
+
+todo_area = im[0:height, 0:todo_width]
+cv2.imwrite("output/todo_area.jpg", todo_area)
+doing_area = im[0:height, todo_width:doing_width]
+cv2.imwrite("output/doing_area.jpg", doing_area)
+done_area = im[0:height, doing_width:width]
+cv2.imwrite("output/done_area.jpg", done_area)
+
 #cv2.imwrite("output2/im_th.jpg", im_th)
 im_blur = cv2.GaussianBlur(im, (25,25), 0)
 cv2.imwrite("output/im_blur.jpg", im_blur)
@@ -51,6 +66,7 @@ cv2.destroyAllWindows()
 
 # filtered with area over (all area / 100 )
 th_area = im.shape[0] * im.shape[1] / 100
+todo_area = im.shape[0] * im.shape[1] /100
 contours_large = list(filter(lambda c:cv2.contourArea(c) > th_area, contours))
 
 print(len(contours_large))
