@@ -1,77 +1,71 @@
 import cv2
 import numpy as np
-
+from paint import *
 #from sklearn.cluster import KMeans
 #KMeans
 
-image_dir = 'images/'
-image_file = 'image3.JPG'
 im = cv2.imread(image_dir + image_file, 1)
 
-height, width = im.shape[:2]
-todo_width = width //3
-doing_width = 2 * width //3
-cv2.line(im, (todo_width, 0), (todo_width, height), (0,0,0), 4)
+todo_im, doing_im, done_im = each_area_get(im)
 
-cv2.line(im, (doing_width, 0), (doing_width, height), (0,0,0),4)
+#写真にブラーをかけ,色の平均を取ってグレースケールに変換
+im_th = image_pre(im)
+todo_im_th = image_pre(todo_im)
+doing_im_th = image_pre(doing_im)
+done_im_th = image_pre(done_im)
 
-todo_area = im[0:height, 0:todo_width]
-cv2.imwrite("output/todo_area.jpg", todo_area)
-doing_area = im[0:height, todo_width:doing_width]
-cv2.imwrite("output/doing_area.jpg", doing_area)
-done_area = im[0:height, doing_width:width]
-cv2.imwrite("output/done_area.jpg", done_area)
+#todo area
+todo_ret2, todo_th = threshold(todo_im_th)
+todo_img, todo_contours, _ = cv2.findContours(todo_th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+todo_contours_large = contour(todo_th, todo_contours)
+print ("number of tags todo_area: %d" %len(todo_contours_large))
 
-#cv2.imwrite("output2/im_th.jpg", im_th)
-im_blur = cv2.GaussianBlur(im, (25,25), 0)
-cv2.imwrite("output/im_blur.jpg", im_blur)
-im_th = (np.abs(im_blur[:,:,2] - im_blur[:,:,1]) + np.abs(im_blur[:,:,2] - im_blur[:,:,0]))
+im_copy = np.copy(todo_im)
+im_contours = cv2.drawContours(im_copy, todo_contours_large, -1, (0,0,0),2)
+show_img(im_contours)
+
+#doing area
+doing_ret2, doing_th = threshold(doing_im_th)
+doing_img, doing_contours, _ = cv2.findContours(doing_th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+doing_contours_large = contour(doing_th, doing_contours)
+print ("number of tags doing_area: %d" %len(doing_contours_large))
+
+im_copy = np.copy(doing_im)
+im_contours = cv2.drawContours(im_copy, doing_contours_large, -1, (0,0,0),2)
+show_img(im_contours)
+
+#done area
+done_ret2, done_th = threshold(done_im_th)
+done_img, done_contours, _ = cv2.findContours(done_th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+done_contours_large = contour(done_th, done_contours)
+print ("number of tags done_area: %d" %len(done_contours_large))
+
+im_copy = np.copy(done_im)
+im_contours = cv2.drawContours(im_copy, done_contours_large, -1, (0,0,0),2)
+show_img(im_contours)
+
+#original image
+ret2, th = threshold(im_th)
+img, contours, _ = cv2.findContours(th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+contours_large = contour(th, contours)
+print ("number of tags: %d" %len(contours_large))
+
+im_copy = np.copy(im)
+im_contours = cv2.drawContours(im_copy, contours_large, -1, (0,0,0),2)
+show_img(im_contours)
+cv2.imwrite(image_out_dir + "im_contours.jpg", im_contours)
 
 
-def getRectByPoints(points):
-    # prepare simple array
-    points = list(map(lambda x: x[0], points))
-
-    points = sorted(points, key=lambda x:x[1])
-    top_points = sorted(points[:2], key=lambda x:x[0])
-    bottom_points = sorted(points[2:4], key=lambda x:x[0])
-    points = top_points + bottom_points
-
-    left = min(points[0][0], points[2][0])
-    right = max(points[1][0], points[3][0])
-    top = min(points[0][1], points[1][1])
-    bottom = max(points[2][1], points[3][1])
-    return (top, bottom, left, right)
-
-def getPartImageByRect(rect):
-    img = cv2.imread(image_dir + image_file, 1)
-    return img[rect[0]:rect[1], rect[2]:rect[3]]
-
-#画像を２値化する関数255は固定
-ret1, th1 = cv2.threshold(im_th, 127,255, cv2.THRESH_BINARY)
-th2 = cv2.adaptiveThreshold(im_th, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11,3)
-#付箋部分だけ取りたい時↓
-ret2, th = cv2.threshold(im_th, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-
-cv2.imwrite("output/th2.jpg", th2)
-cv2.imwrite("output/th.jpg", th)
+"""
+ret1, th1 = threshold1(im_th)
 cv2.imwrite("output/th1.jpg", th1)
 
-img, contours, _ = cv2.findContours(th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-"""#contoursの表示
-cv2.imshow("image",img)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+th2 = threshold2(im_th)
+cv2.imwrite("output/th2.jpg", th2)
 """
 
-# filtered with area over (all area / 100 )
-th_area = im.shape[0] * im.shape[1] / 100
-todo_area = im.shape[0] * im.shape[1] /100
-contours_large = list(filter(lambda c:cv2.contourArea(c) > th_area, contours))
 
-print(len(contours_large))
-
-#付箋数えるテストここから
+"""#付箋数えるテストここから
 
 im_copy = np.copy(im)
 im_contours = cv2.drawContours(im_copy, contours_large, -1, (0,0,0),2)
@@ -86,7 +80,9 @@ for cnt in contours_large:
 
 cv2.imwrite("output/image-bounding.jpg", bounding_img)
 
-#ここまで
+"""#ここまで
+
+
 
 outputs = []
 rects = []
@@ -101,21 +97,4 @@ for i,cnt in enumerate(contours_large):
     rect = getRectByPoints(approx)
     rects.append(rect)
     outputs.append(getPartImageByRect(rect))
-    cv2.imwrite('output/'+str(i)+'.jpg', getPartImageByRect(rect))
-
-
-"""
-#付箋の色でクラスタリング
-t_colors = []
-for i,out in enumerate(outputs):
-    color = np.zeros(3)
-    for j in range(3):
-        color[j] = np.median(out[:,:,j])
-    t_colors.append(color)
-t_colors = np.array(t_colors)
-
-cluster_num = 4
-kmeans = KMeans(n_clusters = cluster_num).fit(t_colors)
-labels = kmeans.labels_
-centers = np.array(kmeans.cluster_centers_).astype(np.int)
-"""
+    cv2.imwrite(image_out_dir+str(i)+'.jpg', getPartImageByRect(rect))

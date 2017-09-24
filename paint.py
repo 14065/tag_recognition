@@ -2,27 +2,30 @@ import cv2
 import numpy as np
 
 image_dir = 'images/'
-image_file = 'image3.JPG'
+image_file = 'image4.JPG'
+image_out_dir = "output/"
 
 def each_area_get(image):
     height, width = image.shape[:2]
     todo_width = width // 3
     doing_width = 2 * width // 3
 
-    todo_area = image[0:height, 0:todo_width]
-    cv2.imwrite("output/todo_area.jpg", todo_area)
+    todo_im = image[0:height, 0:todo_width]
+    #cv2.imwrite("output/todo_im.jpg", todo_im)
 
-    doing_area = image[0:height, todo_width:doing_width]
-    cv2.imwrite("output/doing_area.jpg", doing_area)
+    doing_im = image[0:height, todo_width:doing_width]
+    #cv2.imwrite("output/doing_im.jpg", doing_im)
 
-    done_area = image[0:height, doing_width:width]
-    cv2.imwrite("output/done_area.jpg", done_area)
+    done_im = image[0:height, doing_width:width]
+    #cv2.imwrite("output/done_im.jpg", done_im)
+
+    return todo_im, doing_im, done_im
 
 def image_pre(im):
-    im_blur = cv2.GaussianBlur(im, (25,25), 0)
-    cv2.imwrite("output/im_blur.jpg", im_blur)
-    im_th = (np.abs(im_blur[:,:,2] - im_blur[:,:,1]) + np.abs(im_blur[:,:,2] - im_blur[:,:,0]))
-    return im_th
+    im_th = (np.abs(im[:,:,2] - im[:,:,1]) + np.abs(im[:,:,2] - im[:,:,0]))
+
+    im_blur = cv2.GaussianBlur(im_th, (25,25), 0)
+    return im_blur
 
 def getRectByPoints(points):
     # prepare simple array
@@ -56,5 +59,11 @@ def threshold2(im_th):
     return th2
 
 def contour(im, contours):
-    area = im.shape[0] * im.shape[1] / 100
+    area = im.shape[0] * im.shape[1] / 1000
     contours_large = list(filter(lambda c:cv2.contourArea(c) > area, contours))
+    return contours_large
+
+def show_img(img):
+    cv2.imshow("image",img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
