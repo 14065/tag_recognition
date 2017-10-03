@@ -22,7 +22,7 @@ print ("number of tags todo_area: %d" %len(todo_contours_large))
 
 im_copy = np.copy(todo_im)
 im_contours = cv2.drawContours(im_copy, todo_contours_large, -1, (0,0,0),2)
-show_img(im_contours)
+#show_img(im_contours)
 
 #doing area
 doing_ret2, doing_th = threshold(doing_im_th)
@@ -32,7 +32,7 @@ print ("number of tags doing_area: %d" %len(doing_contours_large))
 
 im_copy = np.copy(doing_im)
 im_contours = cv2.drawContours(im_copy, doing_contours_large, -1, (0,0,0),2)
-show_img(im_contours)
+#show_img(im_contours)
 
 #done area
 done_ret2, done_th = threshold(done_im_th)
@@ -42,7 +42,7 @@ print ("number of tags done_area: %d" %len(done_contours_large))
 
 im_copy = np.copy(done_im)
 im_contours = cv2.drawContours(im_copy, done_contours_large, -1, (0,0,0),2)
-show_img(im_contours)
+#show_img(im_contours)
 
 #original image
 ret2, th = threshold(im_th)
@@ -52,7 +52,7 @@ print ("number of tags: %d" %len(contours_large))
 
 im_copy = np.copy(im)
 im_contours = cv2.drawContours(im_copy, contours_large, -1, (0,0,0),2)
-show_img(im_contours)
+#show_img(im_contours)
 cv2.imwrite(image_out_dir + "im_contours.jpg", im_contours)
 
 
@@ -64,37 +64,19 @@ th2 = threshold2(im_th)
 cv2.imwrite("output/th2.jpg", th2)
 """
 
-
-"""#付箋数えるテストここから
-
 im_copy = np.copy(im)
-im_contours = cv2.drawContours(im_copy, contours_large, -1, (0,0,0),2)
-
-cv2.imwrite("output/image-contour1.jpg", im_contours)
-print ("number of tags: %d" %len(contours_large))
-
-im_copy = np.copy(im)
-for cnt in contours_large:
+for i, cnt in enumerate(contours_large):
     x, y, w, h = cv2.boundingRect(cnt)
     bounding_img = cv2.rectangle(im_copy, (x, y), (x + w, y + h), (0, 255, 0), 3)
+    #cv2.imwrite(image_out_dir+"bounding"+str(i)+'.jpg',bounding_img)
+    cv2.imwrite(image_out_dir + "bounding" + str(i) + ".jpg", im[y:y+h, x:x+w])
+    print(len(cnt))
+    print(x, y, w, h)
+    midpoint_x = x + w // 2
+    midpoint_y = y + h // 2
+    bounding_img = cv2.circle(bounding_img, (midpoint_x, midpoint_y), 5, (0,0,0), -1)
+
 
 cv2.imwrite("output/image-bounding.jpg", bounding_img)
-
-"""#ここまで
-
-
-
-outputs = []
-rects = []
-approxes = []
-
-for i,cnt in enumerate(contours_large):
-    arclen = cv2.arcLength(cnt, True)
-    approx = cv2.approxPolyDP(cnt, 0.02*arclen, True)
-    if len(approx) < 4:
-        continue
-    approxes.append(approx)
-    rect = getRectByPoints(approx)
-    rects.append(rect)
-    outputs.append(getPartImageByRect(rect))
-    cv2.imwrite(image_out_dir+str(i)+'.jpg', getPartImageByRect(rect))
+print("\n")
+print(im.shape)
