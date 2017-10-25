@@ -33,6 +33,6 @@ try{
 <br><br><br>
 <a href="img_up.php"><input type="button" value="画像を登録する"></a>
 
-<a href="test.php"><input type="button" value="今までの履歴を見る"></a>
+<a href="history.php"><input type="button" value="今までの履歴を見る"></a>
 </body>
 </html>
