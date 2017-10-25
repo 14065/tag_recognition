@@ -1,106 +1,82 @@
 import cv2
 import numpy as np
-
+from paint import *
 #from sklearn.cluster import KMeans
 #KMeans
 
-image_dir = '/home/yuito/test/images/'
-image_file = 'image2.JPG'
 im = cv2.imread(image_dir + image_file, 1)
-#im_th = (np.abs(im[:,:,2] - im[:,:,1]) + np.abs(im[:,:,2] - im[:,:,0]))
-#cv2.imwrite("output2/im_th.jpg", im_th)
-im_blur = cv2.GaussianBlur(im, (25,25), 0)
-cv2.imwrite("output2/im_blur.jpg", im_blur)
-im_th = (np.abs(im_blur[:,:,2] - im_blur[:,:,1]) + np.abs(im_blur[:,:,2] - im_blur[:,:,0]))
 
+todo_im, doing_im, done_im = each_area_get(im)
 
-def getRectByPoints(points):
-    # prepare simple array
-    points = list(map(lambda x: x[0], points))
+#写真にブラーをかけ,色の平均を取ってグレースケールに変換
+im_th = image_pre(im)
+todo_im_th = image_pre(todo_im)
+doing_im_th = image_pre(doing_im)
+done_im_th = image_pre(done_im)
 
-    points = sorted(points, key=lambda x:x[1])
-    top_points = sorted(points[:2], key=lambda x:x[0])
-    bottom_points = sorted(points[2:4], key=lambda x:x[0])
-    points = top_points + bottom_points
+#todo area
+todo_ret2, todo_th = threshold(todo_im_th)
+todo_img, todo_contours, _ = cv2.findContours(todo_th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+todo_contours_large = contour(todo_th, todo_contours)
+print ("number of tags todo_area: %d" %len(todo_contours_large))
 
-    left = min(points[0][0], points[2][0])
-    right = max(points[1][0], points[3][0])
-    top = min(points[0][1], points[1][1])
-    bottom = max(points[2][1], points[3][1])
-    return (top, bottom, left, right)
+im_copy = np.copy(todo_im)
+im_contours = cv2.drawContours(im_copy, todo_contours_large, -1, (0,0,0),2)
+#show_img(im_contours)
 
-def getPartImageByRect(rect):
-    img = cv2.imread(image_dir + image_file, 1)
-    return img[rect[0]:rect[1], rect[2]:rect[3]]
+#doing area
+doing_ret2, doing_th = threshold(doing_im_th)
+doing_img, doing_contours, _ = cv2.findContours(doing_th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+doing_contours_large = contour(doing_th, doing_contours)
+print ("number of tags doing_area: %d" %len(doing_contours_large))
 
-#画像を２値化する関数255は固定
-ret1, th1 = cv2.threshold(im_th, 127,255, cv2.THRESH_BINARY)
-th2 = cv2.adaptiveThreshold(im_th, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11,3)
-#付箋部分だけ取りたい時↓
-ret2, th = cv2.threshold(im_th, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+im_copy = np.copy(doing_im)
+im_contours = cv2.drawContours(im_copy, doing_contours_large, -1, (0,0,0),2)
+#show_img(im_contours)
 
-cv2.imwrite("output2/th2.jpg", th2)
-cv2.imwrite("output2/th.jpg", th)
-cv2.imwrite("output2/th1.jpg", th1)
+#done area
+done_ret2, done_th = threshold(done_im_th)
+done_img, done_contours, _ = cv2.findContours(done_th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+done_contours_large = contour(done_th, done_contours)
+print ("number of tags done_area: %d" %len(done_contours_large))
 
+im_copy = np.copy(done_im)
+im_contours = cv2.drawContours(im_copy, done_contours_large, -1, (0,0,0),2)
+#show_img(im_contours)
+
+#original image
+ret2, th = threshold(im_th)
 img, contours, _ = cv2.findContours(th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-"""#contoursの表示
-cv2.imshow("image",img)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-"""
-
-# filtered with area over (all area / 100 )
-th_area = im.shape[0] * im.shape[1] / 100
-contours_large = list(filter(lambda c:cv2.contourArea(c) > th_area, contours))
-
-print(len(contours_large))
-
-#付箋数えるテストここから
-
-im_copy = np.copy(im)
-im_contours = cv2.drawContours(im_copy, contours_large, -1, (0,0,0),2)
-
-cv2.imwrite("output2/image-contour1.jpg", im_contours)
+contours_large = contour(th, contours)
 print ("number of tags: %d" %len(contours_large))
 
 im_copy = np.copy(im)
-for cnt in contours_large:
+im_contours = cv2.drawContours(im_copy, contours_large, -1, (0,0,0),2)
+#show_img(im_contours)
+cv2.imwrite(image_out_dir + "im_contours.jpg", im_contours)
+
+
+"""
+ret1, th1 = threshold1(im_th)
+cv2.imwrite("output/th1.jpg", th1)
+
+th2 = threshold2(im_th)
+cv2.imwrite("output/th2.jpg", th2)
+"""
+
+im_copy = np.copy(im)
+for i, cnt in enumerate(contours_large):
     x, y, w, h = cv2.boundingRect(cnt)
     bounding_img = cv2.rectangle(im_copy, (x, y), (x + w, y + h), (0, 255, 0), 3)
-
-cv2.imwrite("output2/image-bounding.jpg", bounding_img)
-
-#ここまで
-
-outputs = []
-rects = []
-approxes = []
-
-for i,cnt in enumerate(contours_large):
-    arclen = cv2.arcLength(cnt, True)
-    approx = cv2.approxPolyDP(cnt, 0.02*arclen, True)
-    if len(approx) < 4:
-        continue
-    approxes.append(approx)
-    rect = getRectByPoints(approx)
-    rects.append(rect)
-    outputs.append(getPartImageByRect(rect))
-    cv2.imwrite('output2/'+str(i)+'.jpg', getPartImageByRect(rect))
+    #cv2.imwrite(image_out_dir+"bounding"+str(i)+'.jpg',bounding_img)
+    cv2.imwrite(image_out_dir + "bounding" + str(i) + ".jpg", im[y:y+h, x:x+w])
+    print(len(cnt))
+    print(x, y, w, h)
+    midpoint_x = x + w // 2
+    midpoint_y = y + h // 2
+    bounding_img = cv2.circle(bounding_img, (midpoint_x, midpoint_y), 5, (0,0,0), -1)
 
 
-"""
-#付箋の色でクラスタリング
-t_colors = []
-for i,out in enumerate(outputs):
-    color = np.zeros(3)
-    for j in range(3):
-        color[j] = np.median(out[:,:,j])
-    t_colors.append(color)
-t_colors = np.array(t_colors)
-
-cluster_num = 4
-kmeans = KMeans(n_clusters = cluster_num).fit(t_colors)
-labels = kmeans.labels_
-centers = np.array(kmeans.cluster_centers_).astype(np.int)
-"""
+cv2.imwrite("output/image-bounding.jpg", bounding_img)
+print("\n")
+print(im.shape)
