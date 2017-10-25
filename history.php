@@ -4,7 +4,7 @@
   <title>履歴ページ</title>
 </head>
 <body>
-<a href="main.php"><input type="button" value="戻る">
+<a href="main.php"><input type="button" value="戻る"></a>
 <table border="1" width="65%">
     <tr>
         <th>ID</th>

@@ -10,8 +10,6 @@
     画像パス：<input type="file" name="image" size="30">
     <input type="submit" name="submit" value="送信"><br>
   </form>
-  <a href="">
-
 
 <?php
 require'common.php';
@@ -19,19 +17,8 @@ require'common.php';
 if(isset($_FILES["image"])){
   $img = file_get_contents($_FILES["image"]["tmp_name"]);
 
-/* test2.php用
-  $pdo = new PDO('mysql: host=localhost; dbname=test_db; charset=utf8', 'yuito', 'panth1216');
-*/
-
   $pdo = connect_db();
-/* test.php用
-  $pdo = new PDO('mysql: host=localhost; dbname=tag; charset=utf8', 'yuito', 'panth1216');
-*/
 
-# test2.php用
-  #$sql = "INSERT INTO IMAGES(IMG) VALUES (?)";
-
-# test.php用
   $sql = "INSERT INTO images(img) VALUES (?)";
   $stmt = insert($sql, [$img]);
 
