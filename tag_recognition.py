@@ -1,82 +1,35 @@
 import cv2
 import numpy as np
 from paint import *
-#from sklearn.cluster import KMeans
-#KMeans
+from db import *
+from tmp_match import *
 
+img = open(image_dir + image_file, 'rb').read()
 im = cv2.imread(image_dir + image_file, 1)
+img_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+#tmp = cv2.imread(image_out_dir + '2.jpg', 0)
+#result = cv2.matchTemplate(img_gray, tmp, cv2.TM_CCOEFF_NORMED)
+
 
 todo_im, doing_im, done_im = each_area_get(im)
 
-#写真にブラーをかけ,色の平均を取ってグレースケールに変換
-im_th = image_pre(im)
-todo_im_th = image_pre(todo_im)
-doing_im_th = image_pre(doing_im)
-done_im_th = image_pre(done_im)
+todo = image_pre(todo_im)
+print("number of todo tags: %d" %len(todo))
 
-#todo area
-todo_ret2, todo_th = threshold(todo_im_th)
-todo_img, todo_contours, _ = cv2.findContours(todo_th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-todo_contours_large = contour(todo_th, todo_contours)
-print ("number of tags todo_area: %d" %len(todo_contours_large))
+doing = image_pre(doing_im)
+print("number of doing tags: %d" %len(doing))
 
-im_copy = np.copy(todo_im)
-im_contours = cv2.drawContours(im_copy, todo_contours_large, -1, (0,0,0),2)
-#show_img(im_contours)
+done = image_pre(done_im)
+print("number of done tags: %d" %len(done))
 
-#doing area
-doing_ret2, doing_th = threshold(doing_im_th)
-doing_img, doing_contours, _ = cv2.findContours(doing_th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-doing_contours_large = contour(doing_th, doing_contours)
-print ("number of tags doing_area: %d" %len(doing_contours_large))
+origin = image_pre(im)
+print("number of origin tags: %d" %len(origin))
 
-im_copy = np.copy(doing_im)
-im_contours = cv2.drawContours(im_copy, doing_contours_large, -1, (0,0,0),2)
-#show_img(im_contours)
+#image_contours(im)
+#db_images_insert(len(todo), len(doing), len(done), img)
 
-#done area
-done_ret2, done_th = threshold(done_im_th)
-done_img, done_contours, _ = cv2.findContours(done_th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-done_contours_large = contour(done_th, done_contours)
-print ("number of tags done_area: %d" %len(done_contours_large))
-
-im_copy = np.copy(done_im)
-im_contours = cv2.drawContours(im_copy, done_contours_large, -1, (0,0,0),2)
-#show_img(im_contours)
-
-#original image
-ret2, th = threshold(im_th)
-img, contours, _ = cv2.findContours(th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-contours_large = contour(th, contours)
-print ("number of tags: %d" %len(contours_large))
-
-im_copy = np.copy(im)
-im_contours = cv2.drawContours(im_copy, contours_large, -1, (0,0,0),2)
-#show_img(im_contours)
-cv2.imwrite(image_out_dir + "im_contours.jpg", im_contours)
-
-
-"""
-ret1, th1 = threshold1(im_th)
-cv2.imwrite("output/th1.jpg", th1)
-
-th2 = threshold2(im_th)
-cv2.imwrite("output/th2.jpg", th2)
-"""
-
-im_copy = np.copy(im)
-for i, cnt in enumerate(contours_large):
-    x, y, w, h = cv2.boundingRect(cnt)
-    bounding_img = cv2.rectangle(im_copy, (x, y), (x + w, y + h), (0, 255, 0), 3)
-    #cv2.imwrite(image_out_dir+"bounding"+str(i)+'.jpg',bounding_img)
-    cv2.imwrite(image_out_dir + "bounding" + str(i) + ".jpg", im[y:y+h, x:x+w])
-    print(len(cnt))
-    print(x, y, w, h)
-    midpoint_x = x + w // 2
-    midpoint_y = y + h // 2
-    bounding_img = cv2.circle(bounding_img, (midpoint_x, midpoint_y), 5, (0,0,0), -1)
-
-
-cv2.imwrite("output/image-bounding.jpg", bounding_img)
+find_tag(origin, im)
 print("\n")
 print(im.shape)
+
+#tmp_match(result, im, tmp)
