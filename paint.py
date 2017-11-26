@@ -24,12 +24,10 @@ def each_area_get(image):
 
     return todo_im, doing_im, done_im
 
-def image_pre(im):
-    im = cv2.fastNlMeansDenoisingColored(im,None,10,10,7,21)
+def image_pre(image):
+    image = cv2.fastNlMeansDenoisingColored(image,None,10,10,7,21)
 
-    #im_blur = cv2.GaussianBlur(im, (1,1), 0)
-
-    hsv = cv2.cvtColor(im, cv2.COLOR_BGR2HSV_FULL)
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV_FULL)
     h = hsv[:, :, 0]
     s = hsv[:, :, 1]
     v = hsv[:, :, 2]
@@ -38,13 +36,13 @@ def image_pre(im):
     mask[(h > 0) & (s > 65) & (v > 60)] = 255
 
     img, contours, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-    #cv2.imwrite(image_out_dir +  "image_blur.jpg", img)
 
-    area = im.shape[0] * im.shape[1] / 1000
+    area = image.shape[0] * image.shape[1] / 1000
     contours_large = list(filter(lambda c:cv2.contourArea(c) > area, contours))
 
     return contours_large
 
+"""使わない？
 def image_contours(image):
     area_contours_large = image_pre(image)
 
@@ -53,7 +51,6 @@ def image_contours(image):
     #show_img(img_contours)
     #cv2.imwrite(image_out_dir +  "image-contours.jpg", img_contours)
 
-"""使わない？
 def threshold(img_th):
     ret2, th = cv2.threshold(img_th, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
     cv2.imwrite(image_out_dir +  "image-thresh.jpg", th)
@@ -93,27 +90,39 @@ def find_tag(contours_large, image):
         for i, cnt in enumerate(contours_large):
             x, y, w, h = cv2.boundingRect(cnt)
             bounding_img = cv2.rectangle(im_copy, (x, y), (x + w, y + h), (255, 0, 255), 1)
-
-            #img = cv2.imwrite(TARGET_DIR+ str(i+1) + ".jpg", image[y:y+h, x:x+w])
             #time.sleep(5)
 
+            midpoint = find_center(x, w, y, h)
 
             print(i)
-            print(x, y, w, h)
+            print('loc: %r' %((x,y),))
+            print('w, h: %r' %((w,h),))
+            print('midpoint: %r' %((midpoint[0], midpoint[1]),))
 
-            midpoint = find_center(x, w, y, h)
-            print(midpoint)
             bounding_img = cv2.circle(bounding_img, midpoint, 3, (0,0,0), -1)
 
-            """#dbにインサート
-            img = open(TARGET_DIR + str(i+1) +'.jpg', 'rb').read()
-            db_tag_insert(i+1, midpoint[0], midpoint[1], img)
+            """db
+            img = image[y:y+h, x:x+w]
+            img_str = encode_img(img)
 
+            cv2.imwrite(TARGET_DIR+ str(i+1) + ".jpg", img)
+
+            db_tag_insert(i+1, midpoint[0], midpoint[1], img_str)
 
         cv2.imwrite(TARGET_DIR + "image-bounding.jpg", bounding_img)
 """
-
 def show_img(image):
     cv2.imshow("image",image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+def decode_img(image):
+    nparr = np.fromstring(image, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    return img
+
+def encode_img(image):
+    ret, image = cv2.imencode('.jpg', image)
+    if ret:
+        data = np.array(image)
+        return data.tostring()

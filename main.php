@@ -8,23 +8,19 @@
 <?php
 require 'common.php';
 try{
-  $pdo = connect_db();
-  $sql = 'SELECT * FROM images WHERE id=(SELECT MAX(ID) FROM images)';
-  $stmt = $pdo->query($sql);
-  if(!$stmt){
-    $info = $pdo->errorInfo();
-    exit($info[2]);
-  }
+  $data = get_latest_time();
+  $row = get_latest_images();
 
-  while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
 ?>
-    <img src="img_show.php?id=<?php echo $row['id']; ?> width="640" height="480""><br>
+  <img src="img_show.php" width="640" height="480"><br>
 <?php
-    echo 'Todoの付箋の枚数 : ' .$row['todo']. '枚  <br>';
-    echo 'Doingの付箋の枚数: ' .$row['doing']. '枚  <br>';
-    echo 'Doneの付箋の枚数 : ' .$row['done']. '枚  <br>';
-    }
+  echo $data['time'].' 更新<br>';
+  echo 'Todoの付箋の枚数 : ' .$row['todo']. '枚  <br>';
+  echo 'Doingの付箋の枚数: ' .$row['doing']. '枚  <br>';
+  echo 'Doneの付箋の枚数 : ' .$row['done']. '枚  <br>';
+
   $pdo = null;
+
 }catch(PDOException $e){
   print('Error: ') .$e->getMessage();
 }
