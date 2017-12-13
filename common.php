@@ -29,11 +29,11 @@ function h($string){
    return htmlspecialchars($string, ENT_QUOTES, 'utf-8');
 }
 
-function get_latest_time(){
+function get_time($id){
   $pdo = connect_db();
 
-  $stmt = $pdo->prepare("SELECT * FROM changed_img WHERE id = (SELECT MAX(id) FROM changed_img)");
-  $stmt->execute();
+  $stmt = $pdo->prepare("SELECT * FROM changed_img WHERE id = ?");
+  $stmt->execute(array($id));
 
   if(!$stmt){
     $info = $pdo->errorInfo();
@@ -42,16 +42,31 @@ function get_latest_time(){
   return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-function get_latest_images(){
+function get_images($id){
   $pdo = connect_db();
 
-  $sql = 'SELECT * FROM images WHERE id=(SELECT MAX(ID) FROM images)';
-  $stmt = $pdo->query($sql);
+  $sql = 'SELECT * FROM images WHERE id = ?';
+  $stmt = $pdo->prepare($sql);
+  $stmt->execute(array($id));
   if(!$stmt){
     $info = $pdo->errorInfo();
     exit($info[2]);
   }
   return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+function get_latest_id(){
+  $pdo = connect_db();
+
+  $stmt = $pdo->prepare("SELECT * FROM images WHERE id = (SELECT MAX(id) FROM images)");
+  $stmt->execute();
+
+  if(!$stmt){
+    $info = $pdo->errorInfo();
+    exit($info[2]);
+  }
+  return $stmt->fetch(PDO::FETCH_ASSOC);
+
 }
 
 ?>
