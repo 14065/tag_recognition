@@ -8,7 +8,11 @@
 <?php
 require 'common.php';
 try{
-  $id = $_GET["id"];
+  if(!isset($_GET['id'])){
+    $id = get_latest_id()['id'];
+  }else{
+    $id = $_GET["id"];
+  }
   $row = get_images($id);
   $data = get_time($id);
 
