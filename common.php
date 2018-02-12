@@ -9,8 +9,8 @@
  */
 function connect_db(){
     $dsn = 'mysql:host=localhost;dbname=tag;charset=utf8';
-    $username = 'yuito';
-    $password = 'panth1216';
+    $username = 'user';
+    $password = 'pass';
 
     $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,

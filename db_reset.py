@@ -1,8 +1,8 @@
 import mysql.connector
 
 connect = mysql.connector.connect(
-    user = 'yuito',
-    password = 'panth1216',
+    user = 'user',
+    password = 'pass',
     host = 'localhost',
     db = 'tag',
     charset = 'utf8'
