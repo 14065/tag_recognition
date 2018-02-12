@@ -3,7 +3,6 @@ import numpy as np
 from paint import *
 from db import *
 from tmp_match import *
-import time
 """
 im = cv2.imread(image_dir + image_file, 1)
 img = encode_img(im)
@@ -12,14 +11,14 @@ img_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
 i = 0
 cap = cv2.VideoCapture(0)
 while(True):
-    if cv2.waitKey(25000) == ord('q'):
-        break
     ret, im = cap.read()
-    print(i)
+    cv2.imshow('im', im)
+    if cv2.waitKey(180000) == ord('q'):
+        break
+
     i += 1
     if not ret:
         break
-    cv2.imshow('im', im)
     img = encode_img(im)
     img_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
 
@@ -68,7 +67,7 @@ while(True):
 
                 row = cursor.fetchone()
 
-            cv2.imwrite(image_out_dir+str(last_image_id()) + ".jpg", changed_img)
+            #cv2.imwrite(image_out_dir+str(last_image_id()) + ".jpg", changed_img)
             changed_img = encode_img(changed_img)
             db_changed_img_insert(changed_img)
         else:

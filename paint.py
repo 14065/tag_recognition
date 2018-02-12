@@ -2,11 +2,12 @@ import cv2
 import numpy as np
 from db import *
 import os
-#import time
 
+"""
 image_dir = 'images/pby/'
-image_file = 'WIN_20171026_18_07_19_Pro.jpg'
+image_file = 'WIN_20171026_18_25_13_Pro.jpg'
 image_out_dir = 'output/'
+"""
 
 def each_area_get(image):
     height, width = image.shape[:2]
@@ -74,7 +75,6 @@ def find_tag(contours_large, image):
         for i, cnt in enumerate(contours_large):
             x, y, w, h = cv2.boundingRect(cnt)
             bounding_img = cv2.rectangle(im_copy, (x, y), (x + w, y + h), (255, 0, 255), 1)
-            #time.sleep(5)
 
             midpoint = find_center(x, w, y, h)
             area = get_area(image, midpoint)

@@ -27,16 +27,16 @@ def point_compare(image, tmp_midpoint, midpoint, image_id, tag_id, flag):
     left, right, top, bottom = tolerance_area(tmp_midpoint)
 
     if left < midpoint[0] < right and top < midpoint[1] < bottom:
-        print('移動していない')
+        #print('移動していない')
         db_flag_update(image_id, tag_id, flag)
         return image, flag
     elif flag == 2:
-        print('付箋が外されました')
+        #print('付箋が外されました')
         db_flag_update(image_id, tag_id, flag)
         return image, flag
     else:
         flag = 1
-        print('移動している')
+        #print('移動している')
         db_flag_update(image_id, tag_id, flag)
 
         changed_img = cv2.line(image, tmp_midpoint, midpoint, (0,0,0),2)
@@ -48,7 +48,7 @@ def multiple_tmp_match(result, image, tmp_gray):
     threshold = 0.60
     loc = np.where(result >= threshold)
     if len(loc[0]) == False:
-        print("付箋が無いです")
+        #print("付箋が無いです")
 
     w, h = tmp_gray.shape[::-1]
     i = 0
@@ -58,5 +58,5 @@ def multiple_tmp_match(result, image, tmp_gray):
         img_copy = cv2.rectangle(img_copy, top_left, bottom_right, (255,0,0), 1)
         i += 1
 
-    print(i)
+    #print(i)
     show_img(img_copy)

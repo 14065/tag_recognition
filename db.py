@@ -94,7 +94,7 @@ def calc_time_tag_stay(image_id, tag_id, tmp_midpoint, area):
             from paint import tolerance_area
 
             mid_p = (row['midpoint_x'], row['midpoint_y'])
-            print('midpoint: %r' %((mid_p[0], mid_p[1]),))
+            #print('midpoint: %r' %((mid_p[0], mid_p[1]),))
 
             left, right, top, bottom = tolerance_area(mid_p)
 
