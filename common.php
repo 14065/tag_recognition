@@ -9,8 +9,8 @@
  */
 function connect_db(){
     $dsn = 'mysql:host=localhost;dbname=tag;charset=utf8';
-    $username = 'yuito';
-    $password = 'panth1216';
+    $username = 'user';
+    $password = 'pass';
 
     $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -21,41 +21,52 @@ function connect_db(){
 }
 
 /**
- * insert
- * @param string $sql
- * @param array $arr
- * @return int lastInsertId
- */
-function insert($sql, $arr = []){
-   $pdo = connect_db();
-   $stmt = $pdo->prepare($sql);
-   $stmt->execute($arr);
-   return $pdo->lastInsertId();
-}
-
-/**
- * select
- * @param string $sql
- * @param array $arr
- * @return array $rows
- */
-function select($sql){
-   $pdo = connect_db();
-   $stmt = $pdo->query($sql);
-   if(!$stmt){
-     $info = $pdo->errorInfo();
-     exit($info[2]);
-   }
-   return $stmt->fetch();
-}
-
-/**
  * htmlspecialchars
  * @param string $string
  * @return $string
  */
 function h($string){
    return htmlspecialchars($string, ENT_QUOTES, 'utf-8');
+}
+
+function get_time($id){
+  $pdo = connect_db();
+
+  $stmt = $pdo->prepare("SELECT * FROM changed_img WHERE id = ?");
+  $stmt->execute(array($id));
+
+  if(!$stmt){
+    $info = $pdo->errorInfo();
+    exit($info[2]);
+  }
+  return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+function get_images($id){
+  $pdo = connect_db();
+
+  $sql = 'SELECT * FROM images WHERE id = ?';
+  $stmt = $pdo->prepare($sql);
+  $stmt->execute(array($id));
+  if(!$stmt){
+    $info = $pdo->errorInfo();
+    exit($info[2]);
+  }
+  return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+function get_latest_id(){
+  $pdo = connect_db();
+
+  $stmt = $pdo->prepare("SELECT * FROM images WHERE id = (SELECT MAX(id) FROM images)");
+  $stmt->execute();
+
+  if(!$stmt){
+    $info = $pdo->errorInfo();
+    exit($info[2]);
+  }
+  return $stmt->fetch(PDO::FETCH_ASSOC);
+
 }
 
 ?>

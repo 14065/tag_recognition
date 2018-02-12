@@ -4,7 +4,7 @@
   <title>履歴ページ</title>
 </head>
 <body>
-<a href="main.php"><input type="button" value="戻る">
+<a href="main.php"><input type="button" value="戻る"></a>
 <table border="1" width="65%">
     <tr>
         <th>ID</th>
@@ -35,7 +35,7 @@ try{
     echo '<td>' .$row['doing']. '</td>';
     echo '<td>' .$row['done']. '</td>';
 ?>
-    <td><img src="img_show.php?id=<?php echo $row['id'];?> width="480" height="270""></td>
+    <td><img src="img_show_history.php?id=<?php echo $row['id'];?> width="480" height="270""></td>
 
 <?php
     echo '<td>' .$row['time']. '</td>';

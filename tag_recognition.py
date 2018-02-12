@@ -1,82 +1,78 @@
 import cv2
 import numpy as np
 from paint import *
-#from sklearn.cluster import KMeans
-#KMeans
-
+from db import *
+from tmp_match import *
+"""
 im = cv2.imread(image_dir + image_file, 1)
-
-todo_im, doing_im, done_im = each_area_get(im)
-
-#写真にブラーをかけ,色の平均を取ってグレースケールに変換
-im_th = image_pre(im)
-todo_im_th = image_pre(todo_im)
-doing_im_th = image_pre(doing_im)
-done_im_th = image_pre(done_im)
-
-#todo area
-todo_ret2, todo_th = threshold(todo_im_th)
-todo_img, todo_contours, _ = cv2.findContours(todo_th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-todo_contours_large = contour(todo_th, todo_contours)
-print ("number of tags todo_area: %d" %len(todo_contours_large))
-
-im_copy = np.copy(todo_im)
-im_contours = cv2.drawContours(im_copy, todo_contours_large, -1, (0,0,0),2)
-#show_img(im_contours)
-
-#doing area
-doing_ret2, doing_th = threshold(doing_im_th)
-doing_img, doing_contours, _ = cv2.findContours(doing_th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-doing_contours_large = contour(doing_th, doing_contours)
-print ("number of tags doing_area: %d" %len(doing_contours_large))
-
-im_copy = np.copy(doing_im)
-im_contours = cv2.drawContours(im_copy, doing_contours_large, -1, (0,0,0),2)
-#show_img(im_contours)
-
-#done area
-done_ret2, done_th = threshold(done_im_th)
-done_img, done_contours, _ = cv2.findContours(done_th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-done_contours_large = contour(done_th, done_contours)
-print ("number of tags done_area: %d" %len(done_contours_large))
-
-im_copy = np.copy(done_im)
-im_contours = cv2.drawContours(im_copy, done_contours_large, -1, (0,0,0),2)
-#show_img(im_contours)
-
-#original image
-ret2, th = threshold(im_th)
-img, contours, _ = cv2.findContours(th, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-contours_large = contour(th, contours)
-print ("number of tags: %d" %len(contours_large))
-
-im_copy = np.copy(im)
-im_contours = cv2.drawContours(im_copy, contours_large, -1, (0,0,0),2)
-#show_img(im_contours)
-cv2.imwrite(image_out_dir + "im_contours.jpg", im_contours)
-
-
+img = encode_img(im)
+img_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
 """
-ret1, th1 = threshold1(im_th)
-cv2.imwrite("output/th1.jpg", th1)
+i = 0
+cap = cv2.VideoCapture(0)
+while(True):
+    ret, im = cap.read()
+    cv2.imshow('im', im)
+    if cv2.waitKey(180000) == ord('q'):
+        break
 
-th2 = threshold2(im_th)
-cv2.imwrite("output/th2.jpg", th2)
-"""
+    i += 1
+    if not ret:
+        break
+    img = encode_img(im)
+    img_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
 
-im_copy = np.copy(im)
-for i, cnt in enumerate(contours_large):
-    x, y, w, h = cv2.boundingRect(cnt)
-    bounding_img = cv2.rectangle(im_copy, (x, y), (x + w, y + h), (0, 255, 0), 3)
-    #cv2.imwrite(image_out_dir+"bounding"+str(i)+'.jpg',bounding_img)
-    cv2.imwrite(image_out_dir + "bounding" + str(i) + ".jpg", im[y:y+h, x:x+w])
-    print(len(cnt))
-    print(x, y, w, h)
-    midpoint_x = x + w // 2
-    midpoint_y = y + h // 2
-    bounding_img = cv2.circle(bounding_img, (midpoint_x, midpoint_y), 5, (0,0,0), -1)
+    todo_im, doing_im, done_im = each_area_get(im)
 
+    todo = image_pre(todo_im)
+    doing = image_pre(doing_im)
+    done = image_pre(done_im)
+    origin = image_pre(im)
 
-cv2.imwrite("output/image-bounding.jpg", bounding_img)
-print("\n")
-print(im.shape)
+    todo, doing, done = length(todo,doing,done)
+
+    """
+    print("number of todo tags: %d" %todo)
+    print("number of doing tags: %d" %doing)
+    print("number of done tags: %d" %done)
+    print("number of origin tags: %d" %len(origin))
+    """
+    pre_todo, pre_doing, pre_done = get_num_of_previous_tag()
+
+    if todo != pre_todo or doing != pre_doing or done != pre_done:
+        db_images_insert(todo, doing, done, img)
+
+        find_tag(origin, im)
+
+        cursor = connect.cursor(dictionary=True, buffered=True)
+
+        sql = "SELECT * FROM tag_info WHERE image_id = %s" %(last_image_id()-1)
+        cursor.execute(sql)
+        row = cursor.fetchone()
+        if row is not None:
+            while row is not None:
+                tmp = decode_img(row['tag_img'])
+                tmp_gray = cv2.cvtColor(tmp, cv2.COLOR_BGR2GRAY)
+                #show_img(tmp)
+
+                result = cv2.matchTemplate(img_gray, tmp_gray, cv2.TM_CCOEFF_NORMED)
+
+                midpoint, flag = tmp_match(result, im, tmp_gray)
+
+                tmp_midpoint = (row['midpoint_x'], row['midpoint_y'])
+
+                changed_img, flag = point_compare(im, tmp_midpoint, midpoint, row['image_id'], row['tag_id'], flag)
+                calc_time_tag(row['image_id'], row['tag_id'])
+                calc_time_tag_stay(row['image_id'], row['tag_id'], tmp_midpoint, row['area'])
+
+                row = cursor.fetchone()
+
+            #cv2.imwrite(image_out_dir+str(last_image_id()) + ".jpg", changed_img)
+            changed_img = encode_img(changed_img)
+            db_changed_img_insert(changed_img)
+        else:
+            db_changed_img_insert(img)
+    else:
+        print('変化なし')
+cap.release()
+cv2.destroyAllWindows()
