@@ -42,21 +42,3 @@ def point_compare(image, tmp_midpoint, midpoint, image_id, tag_id, flag):
         changed_img = cv2.line(image, tmp_midpoint, midpoint, (0,0,0),2)
         cv2.circle(changed_img, tmp_midpoint, 8, (0,0,0), -1)
         return changed_img, flag
-
-def multiple_tmp_match(result, image, tmp_gray):
-    img_copy = np.copy(image)
-    threshold = 0.60
-    loc = np.where(result >= threshold)
-    if len(loc[0]) == False:
-        #print("付箋が無いです")
-
-    w, h = tmp_gray.shape[::-1]
-    i = 0
-    for top_left in zip(*loc[::-1]):
-        bottom_right = (top_left[0] + w, top_left[1] + h)
-
-        img_copy = cv2.rectangle(img_copy, top_left, bottom_right, (255,0,0), 1)
-        i += 1
-
-    #print(i)
-    show_img(img_copy)
