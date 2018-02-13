@@ -61,10 +61,10 @@ def get_area(image, midpoint):
         return 3
 
 def find_tag(contours_large, image):
+    """
     max_id = last_image_id()
     TARGET_DIR = image_out_dir + str(max_id) + '/'
 
-    """
     if not os.path.isdir(TARGET_DIR):
         os.makedirs(TARGET_DIR)
     """
